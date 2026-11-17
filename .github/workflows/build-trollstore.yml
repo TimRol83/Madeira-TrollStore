@@ -249,35 +249,46 @@ jobs:
         run: |
           sudo xcode-select -s "$(ls -d /Applications/Xcode_26*.app | sort -V | tail -1)"
           xcodebuild -version
-          xcodebuild -downloadComponent MetalToolchain || true
 
       - name: Patch iOS 15 compatibility
         run: |
-          sed -i '' 's/Task\.sleep(for: \.seconds(\([^)]*\)))/Task.sleep(nanoseconds: UInt64((\1) * 1_000_000_000))/g' app/Madeira/Library.swift
-          sed -i '' 's/\.toolbarBackground([^)]*)//g' app/Madeira/Library.swift app/Madeira/ContentView.swift
-          sed -i '' '/preferredSearchBarPlacement/d' app/Madeira/Library.swift app/Madeira/ContentView.swift
-          sed -i '' 's/ViewThatFits([^)]*)/Group/g; s/ViewThatFits {/Group {/g' app/Madeira/Library.swift
-          cat << 'EOF' >> app/Madeira/SwiftSteam/SteamSignInView.swift
+          find app -name "*.swift" -exec sed -i '' 's/Task\.sleep(for: \.seconds(\([^)]*\)))/Task.sleep(nanoseconds: UInt64(\1 * 1_000_000_000))/g' {} +
+          find app -name "project.pbxproj" -exec sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*;/IPHONEOS_DEPLOYMENT_TARGET = 15.0;/g' {} +
 
-          @available(iOS, introduced: 13.0, deprecated: 16.0)
-          struct AnyShape: Shape {
-              private let b: (CGRect) -> Path
-              init<S: Shape>(_ s: S) { b = { s.path(in: $0) } }
-              func path(in r: CGRect) -> Path { b(r) }
-          }
+      - name: Build Madeira.app
+        run: |
+          PROJ=$(find app -maxdepth 2 -name "*.xcodeproj" | head -n 1)
+          echo "Building project: $PROJ"
+          xcodebuild -project "$PROJ" \
+            -scheme Madeira \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build/DerivedData \
+            IPHONEOS_DEPLOYMENT_TARGET=15.0 \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
 
-          @available(iOS, introduced: 13.0, deprecated: 16.0)
-          struct NavigationStack<Content: View>: View {
-              let content: Content
-              init(@ViewBuilder content: () -> Content) { self.content = content() }
-              var body: some View { NavigationView { content }.navigationViewStyle(.stack) }
-          }
-
-          @available(iOS, introduced: 13.0, deprecated: 16.0)
-          struct LabeledContent<Label: View, Content: View>: View {
-              let label: Label; let content: Content
-              init(@ViewBuilder content: () -> Content, @ViewBuilder label: () -> Label) { self.content = content(); self.label = label() }
-              var body: some View { HStack { label; Spacer(); content.foregroundStyle(.secondary) } }
-          }
-
-          @available(iOS, introduced: 13.0, deprecated: 16.0)
+      - name: Sign for TrollStore and pack .tipa
+        run: |
+          APP_PATH=$(find build/DerivedData -name "Madeira.app" | head -n 1)
+          echo "Found app: $APP_PATH"
+          cat << 'EOF' > entitlements.plist
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://apple.com">
+          <plist version="1.0">
+          <dict>
+            <key>platform-application</key>
+            <true/>
+            <key>com.apple.private.security.no-container</key>
+            <false/>
+            <key>get-task-allow</key>
+            <true/>
+            <key>dynamic-codesigning</key>
+            <true/>
+            <key>com.apple.private.skip-library-validation</key>
+            <true/>
+          </dict>
+          </plist>
+          EOF

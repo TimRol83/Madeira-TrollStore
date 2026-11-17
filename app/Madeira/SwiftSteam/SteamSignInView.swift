@@ -196,7 +196,7 @@ extension View { @ViewBuilder func fontWeight(_ w: Font.Weight?) -> some View { 
 @available(iOS, introduced: 13.0, deprecated: 16.0)
 extension URL { static var documentsDirectory: URL { FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first! } }
 @available(iOS, introduced: 13.0, deprecated: 16.0)
-extension PickerStyle where Self == NavigationLinkPickerStyle { static var navigationLink: NavigationLinkPickerStyle { NavigationLinkPickerStyle() } }
+extension PickerStyle where Self == DefaultPickerStyle { static var navigationLink: DefaultPickerStyle { DefaultPickerStyle() } }
 @available(iOS, introduced: 13.0, deprecated: 16.0)
 struct ShareLink<Label: View>: View {
     let items: [Any]; let label: Label

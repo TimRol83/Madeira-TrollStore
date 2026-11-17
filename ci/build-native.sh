@@ -133,7 +133,7 @@ stage_wow64fex() {
 # (ci/patches/dxmt/0002). Upstream's copies embed a macOS 14 / Metal 3.1
 # library, which iOS 16 refuses ("This library format is not supported on
 # this platform"), so every Direct3D 10/11 program failed to start.
-DXMT_METAL_ARGS=(-Dmetal_std=ios-metal2.4 -Dmetal_sdk=iphoneos "-Dmetal_target=air64-apple-ios$MADEIRA_IOS_MIN")
+DXMT_METAL_ARGS=(-Dmetal_std=metal3.0 -Dmetal_sdk=iphoneos "-Dmetal_target=air64-apple-ios$MADEIRA_IOS_MIN")
 stage_dxmt_pe() {
     log "DXMT Windows-side DLLs (ARM64EC, Metal for iOS $MADEIRA_IOS_MIN)"
     mingw_toolchain
@@ -285,7 +285,7 @@ stage_llvm() {
 stage_dxmt() {
     log "DXMT unix + airconv, libdxmt_combined.a"
     # iOS 16 loads Metal 3.0 libraries at most (see ci/patches/dxmt).
-    export DXMT_METAL_STD="${DXMT_METAL_STD:-ios-metal2.4}" DXMT_METAL_SDK=iphoneos \
+    export DXMT_METAL_STD="${DXMT_METAL_STD:-metal3.0}" DXMT_METAL_SDK=iphoneos \
            DXMT_METAL_TARGET="air64-apple-ios$MADEIRA_IOS_MIN"
     bash "$R/build/dxmt-ios/build.sh" || { dump_errs "$R/build/dxmt-ios/obj"; exit 1; }
     # The combined archive: DXMT's objects plus the LLVM libraries airconv uses.
@@ -320,6 +320,7 @@ for d in "$R"/ci/patches/*/; do
 done
 if [ "$sub" = "dxmt" ] && [ -f "$R/dxmt/src/airconv/metallib_writer.cpp" ]; then
     sed -i '' 's/ios16\.0\.0/ios15.0.0/g; s/u32_md(5)/u32_md(4)/g; s/u32_md(3), u32_md(0)/u32_md(2), u32_md(4)/g; s/air_minor = legacy ? 5 : 6/air_minor = legacy ? 4 : 6/g; s/lang_minor = legacy ? 0 : 1/lang_minor = legacy ? 4 : 1/g; s/languageVersionMajor = 3/languageVersionMajor = legacy ? 2 : 3/g; s/OSVersionMajor = 16/OSVersionMajor = 15/g' "$R/dxmt/src/airconv/metallib_writer.cpp"
+    sed -i '' 's/params->ret_pso = (obj_handle_t)\[(id<MTLDevice>)params->device newRenderPipelineStateWithMeshDescriptor:/if (@available(iOS 16.0, *)) { params->ret_pso = (obj_handle_t)[(id<MTLDevice>)params->device newRenderPipelineStateWithMeshDescriptor:/g; s/reflection:nil/reflection:nil]; } else { params->ret_pso = 0; } \/\/ /g' "$R/dxmt/src/winemetal/unix/winemetal_unix.c"
 fi
 done
 

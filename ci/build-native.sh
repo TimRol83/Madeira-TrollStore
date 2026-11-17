@@ -133,7 +133,7 @@ stage_wow64fex() {
 # (ci/patches/dxmt/0002). Upstream's copies embed a macOS 14 / Metal 3.1
 # library, which iOS 16 refuses ("This library format is not supported on
 # this platform"), so every Direct3D 10/11 program failed to start.
-DXMT_METAL_ARGS=(-Dmetal_std=metal2.4 -Dmetal_sdk=iphoneos "-Dmetal_target=air64-apple-ios$MADEIRA_IOS_MIN")
+DXMT_METAL_ARGS=(-Dmetal_std=ios-metal2.4 -Dmetal_sdk=iphoneos "-Dmetal_target=air64-apple-ios$MADEIRA_IOS_MIN")
 stage_dxmt_pe() {
     log "DXMT Windows-side DLLs (ARM64EC, Metal for iOS $MADEIRA_IOS_MIN)"
     mingw_toolchain
@@ -285,7 +285,7 @@ stage_llvm() {
 stage_dxmt() {
     log "DXMT unix + airconv, libdxmt_combined.a"
     # iOS 16 loads Metal 3.0 libraries at most (see ci/patches/dxmt).
-    export DXMT_METAL_STD="${DXMT_METAL_STD:-metal2.4}" DXMT_METAL_SDK=iphoneos \
+    export DXMT_METAL_STD="${DXMT_METAL_STD:-ios-metal2.4}" DXMT_METAL_SDK=iphoneos \
            DXMT_METAL_TARGET="air64-apple-ios$MADEIRA_IOS_MIN"
     bash "$R/build/dxmt-ios/build.sh" || { dump_errs "$R/build/dxmt-ios/obj"; exit 1; }
     # The combined archive: DXMT's objects plus the LLVM libraries airconv uses.

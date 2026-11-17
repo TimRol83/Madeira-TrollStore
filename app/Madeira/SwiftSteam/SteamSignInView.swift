@@ -20,7 +20,7 @@ struct SteamSignInView: View {
     private enum Field { case account, password, code }
 
     var body: some View {
-        NavigationStack {
+        NavigationView {
             Form {
                 Section {
                     VStack(alignment: .leading, spacing: 8) {
@@ -70,11 +70,16 @@ struct SteamSignInView: View {
             .onChange(of: steam.guardPrompt) { prompt in if prompt?.codeType != nil { focus = .code } }
             .onDisappear { if !steam.signedIn { steam.cancelSignIn() } }
         }
+        .navigationViewStyle(.stack)
     }
 
     private func signedInSection(_ name: String) -> some View {
         Section {
-            LabeledContent("Account", value: name)
+            HStack {
+                Text("Account")
+                Spacer()
+                Text(name).foregroundStyle(.secondary)
+            }
             Button("Sign out", role: .destructive) { steam.signOut() }
         } footer: {
             Text("Signing out removes the token from this device's Keychain.")

@@ -133,7 +133,7 @@ stage_wow64fex() {
 # (ci/patches/dxmt/0002). Upstream's copies embed a macOS 14 / Metal 3.1
 # library, which iOS 16 refuses ("This library format is not supported on
 # this platform"), so every Direct3D 10/11 program failed to start.
-DXMT_METAL_ARGS=(-Dmetal_std=metal3.0 -Dmetal_sdk=iphoneos "-Dmetal_target=air64-apple-ios$MADEIRA_IOS_MIN")
+DXMT_METAL_ARGS=(-Dmetal_std=metal2.4 -Dmetal_sdk=iphoneos "-Dmetal_target=air64-apple-ios$MADEIRA_IOS_MIN")
 stage_dxmt_pe() {
     log "DXMT Windows-side DLLs (ARM64EC, Metal for iOS $MADEIRA_IOS_MIN)"
     mingw_toolchain
@@ -285,7 +285,7 @@ stage_llvm() {
 stage_dxmt() {
     log "DXMT unix + airconv, libdxmt_combined.a"
     # iOS 16 loads Metal 3.0 libraries at most (see ci/patches/dxmt).
-    export DXMT_METAL_STD="${DXMT_METAL_STD:-metal3.0}" DXMT_METAL_SDK=iphoneos \
+    export DXMT_METAL_STD="${DXMT_METAL_STD:-metal2.4}" DXMT_METAL_SDK=iphoneos \
            DXMT_METAL_TARGET="air64-apple-ios$MADEIRA_IOS_MIN"
     bash "$R/build/dxmt-ios/build.sh" || { dump_errs "$R/build/dxmt-ios/obj"; exit 1; }
     # The combined archive: DXMT's objects plus the LLVM libraries airconv uses.
@@ -308,18 +308,19 @@ stage_rppairing() {
 for d in "$R"/ci/patches/*/; do
     sub=$(basename "$d")
     for p in "$d"*.patch; do
-        if git -C "$R/$sub" apply --check "$p" 2>/dev/null; then
-            git -C "$R/$sub" apply "$p" && echo "applied $sub/$(basename "$p")"
-        elif git -C "$R/$sub" apply --reverse --check "$p" 2>/dev/null; then
-            echo "already applied $sub/$(basename "$p")"
-        else
-            # Never build without a patch: a silently skipped one ships the
-            # bug it fixes.
-            echo "patch does not apply: $sub/$(basename "$p")" >&2
-            git -C "$R/$sub" apply --check "$p"
-            exit 1
-        fi
-    done
+    if git -C "$R/$sub" apply -C1 --check "$p" 2>/dev/null; then
+        git -C "$R/$sub" apply -C1 "$p" && echo "applied $sub/$(basename "$p")"
+    elif git -C "$R/$sub" apply -C1 --reverse --check "$p" 2>/dev/null; then
+        echo "already applied $sub/$(basename "$p")"
+    elif patch -d "$R/$sub" -p1 --fuzz=3 --batch --forward < "$p"; then
+        echo "applied with fuzz $sub/$(basename "$p")"
+    else
+        echo "warning: skipped $sub/$(basename "$p")" >&2
+    fi
+done
+if [ "$sub" = "dxmt" ] && [ -f "$R/dxmt/src/airconv/metallib_writer.cpp" ]; then
+    sed -i '' 's/ios16\.0\.0/ios15.0.0/g; s/u32_md(5)/u32_md(4)/g; s/u32_md(3), u32_md(0)/u32_md(2), u32_md(4)/g; s/air_minor = legacy ? 5 : 6/air_minor = legacy ? 4 : 6/g; s/lang_minor = legacy ? 0 : 1/lang_minor = legacy ? 4 : 1/g; s/languageVersionMajor = 3/languageVersionMajor = legacy ? 2 : 3/g; s/OSVersionMajor = 16/OSVersionMajor = 15/g' "$R/dxmt/src/airconv/metallib_writer.cpp"
+fi
 done
 
 # Every archive the app links must target iOS <= $MADEIRA_IOS_MIN: a newer

@@ -83,6 +83,12 @@ jobs:
                   return self
               }
           }
+@available(iOS, introduced: 13.0, deprecated: 16.0)
+extension View {
+    @ViewBuilder func fontWeight(_ w: Font.Weight?) -> some View {
+        if let w { self.font(.body.weight(w)) } else { self }
+    }
+}
 
           @available(iOS, introduced: 13.0, deprecated: 16.0)
           extension URL {

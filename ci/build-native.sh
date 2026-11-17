@@ -318,10 +318,9 @@ for d in "$R"/ci/patches/*/; do
         echo "warning: skipped $sub/$(basename "$p")" >&2
     fi
 done
-if [ "$sub" = "dxmt" ] && [ -f "$R/dxmt/src/airconv/metallib_writer.cpp" ]; then
-    sed -i '' 's/ios16\.0\.0/ios15.0.0/g; s/u32_md(5)/u32_md(4)/g; s/u32_md(3), u32_md(0)/u32_md(2), u32_md(4)/g; s/air_minor = legacy ? 5 : 6/air_minor = legacy ? 4 : 6/g; s/lang_minor = legacy ? 0 : 1/lang_minor = legacy ? 4 : 1/g; s/languageVersionMajor = 3/languageVersionMajor = legacy ? 2 : 3/g; s/OSVersionMajor = 16/OSVersionMajor = 15/g' "$R/dxmt/src/airconv/metallib_writer.cpp"
-    sed -i '' 's/params->ret_pso = (obj_handle_t)\[(id<MTLDevice>)params->device newRenderPipelineStateWithMeshDescriptor:/if (@available(iOS 16.0, *)) { params->ret_pso = (obj_handle_t)[(id<MTLDevice>)params->device newRenderPipelineStateWithMeshDescriptor:/g; s/reflection:nil/reflection:nil]; } else { params->ret_pso = 0; } \/\/ /g' "$R/dxmt/src/winemetal/unix/winemetal_unix.c"
-fi
+    if [ "$sub" = "dxmt" ] && [ -f "$R/dxmt/src/airconv/metallib_writer.cpp" ]; then
+        sed -i '' 's/ios16\.0\.0/ios15.0.0/g; s/u32_md(5)/u32_md(4)/g; s/u32_md(3), u32_md(0)/u32_md(2), u32_md(4)/g; s/air_minor = legacy ? 5 : 6/air_minor = legacy ? 4 : 6/g; s/lang_minor = legacy ? 0 : 1/lang_minor = legacy ? 4 : 1/g; s/languageVersionMajor = 3/languageVersionMajor = static_cast<uint16_t>(legacy ? 2 : 3)/g; s/OSVersionMajor = 16/OSVersionMajor = 15/g' "$R/dxmt/src/airconv/metallib_writer.cpp"
+    fi
 done
 
 # Every archive the app links must target iOS <= $MADEIRA_IOS_MIN: a newer

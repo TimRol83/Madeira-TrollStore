@@ -256,6 +256,8 @@ jobs:
       - name: Patch iOS 15 compatibility
         run: |
           find app -name "*.swift" -exec sed -i '' 's/Task\.sleep(for: \.seconds(\([^)]*\)))/Task.sleep(nanoseconds: UInt64(\1 * 1_000_000_000))/g' {} +
+          find app -name "*.swift" -exec sed -i '' 's/URL\.documentsDirectory/FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)/g' {} +
+          find app -name "*.swift" -exec sed -i '' 's/\.searchable(text: \([^,]*\), placement: [^)]*)/.searchable(text: \1)/g' {} +
           find app -name "project.pbxproj" -exec sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*;/IPHONEOS_DEPLOYMENT_TARGET = 15.0;/g' {} +
 
       - name: Build Madeira.app
@@ -294,7 +296,6 @@ jobs:
             <true/>
           </dict>
           </plist>
-
           EOF
           find "$APP_PATH" \( -name "*.dylib" -o -name "*.framework" \) -exec ldid -S {} + || true
           for ext in "$APP_PATH/PlugIns/"*.appex; do

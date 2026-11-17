@@ -167,12 +167,62 @@ struct SteamSignInView: View {
 @available(iOS, introduced: 13.0, deprecated: 16.0)
 struct AnyShape: Shape {
     private let builder: (CGRect) -> Path
+    init<S: Shape>(_ shape: S) { builder = { rect in shape.path(in: rect) } }
+    func path(in rect: CGRect) -> Path { builder(rect) }
+}
 
-    init<S: Shape>(_ shape: S) {
-        builder = { rect in shape.path(in: rect) }
-    }
-
-    func path(in rect: CGRect) -> Path {
-        builder(rect)
+@available(iOS, introduced: 13.0, deprecated: 16.0)
+struct NavigationStack<Content: View>: View {
+    let content: Content
+    init(@ViewBuilder content: () -> Content) { self.content = content() }
+    var body: some View {
+        NavigationView { content }.navigationViewStyle(.stack)
     }
 }
+
+@available(iOS, introduced: 13.0, deprecated: 16.0)
+struct LabeledContent<Label: View, Content: View>: View {
+    let label: Label
+    let content: Content
+    init(@ViewBuilder content: () -> Content, @ViewBuilder label: () -> Label) {
+        self.content = content()
+        self.label = label()
+    }
+    var body: some View {
+        HStack {
+            label
+            Spacer()
+            content.foregroundStyle(.secondary)
+        }
+    }
+}
+
+@available(iOS, introduced: 13.0, deprecated: 16.0)
+extension LabeledContent where Label == Text {
+    init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> Content) {
+        self.label = Text(titleKey)
+        self.content = content()
+    }
+    init<S: StringProtocol>(_ title: S, @ViewBuilder content: () -> Content) {
+        self.label = Text(title)
+        self.content = content()
+    }
+}
+
+@available(iOS, introduced: 13.0, deprecated: 16.0)
+extension LabeledContent where Label == Text, Content == Text {
+    init(_ titleKey: LocalizedStringKey, value: String) {
+        self.label = Text(titleKey)
+        self.content = Text(value)
+    }
+    init<S: StringProtocol>(_ title: S, value: String) {
+        self.label = Text(title)
+        self.content = Text(value)
+    }
+}
+
+@available(iOS, introduced: 13.0, deprecated: 16.0)
+extension View {
+    @ViewBuilder
+    func fontWeight(_ weight: Font.Weight?) -> some View {
+        if let weight {

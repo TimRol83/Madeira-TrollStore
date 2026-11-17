@@ -163,66 +163,44 @@ struct SteamSignInView: View {
         }
     }
 }
-
 @available(iOS, introduced: 13.0, deprecated: 16.0)
 struct AnyShape: Shape {
-    private let builder: (CGRect) -> Path
-    init<S: Shape>(_ shape: S) { builder = { rect in shape.path(in: rect) } }
-    func path(in rect: CGRect) -> Path { builder(rect) }
+    private let b: (CGRect) -> Path
+    init<S: Shape>(_ s: S) { b = { s.path(in: $0) } }
+    func path(in r: CGRect) -> Path { b(r) }
 }
-
 @available(iOS, introduced: 13.0, deprecated: 16.0)
 struct NavigationStack<Content: View>: View {
     let content: Content
     init(@ViewBuilder content: () -> Content) { self.content = content() }
-    var body: some View {
-        NavigationView { content }.navigationViewStyle(.stack)
-    }
+    var body: some View { NavigationView { content }.navigationViewStyle(.stack) }
 }
-
 @available(iOS, introduced: 13.0, deprecated: 16.0)
 struct LabeledContent<Label: View, Content: View>: View {
-    let label: Label
-    let content: Content
-    init(@ViewBuilder content: () -> Content, @ViewBuilder label: () -> Label) {
-        self.content = content()
-        self.label = label()
-    }
-    var body: some View {
-        HStack {
-            label
-            Spacer()
-            content.foregroundStyle(.secondary)
-        }
-    }
+    let label: Label; let content: Content
+    init(@ViewBuilder content: () -> Content, @ViewBuilder label: () -> Label) { self.content = content(); self.label = label() }
+    var body: some View { HStack { label; Spacer(); content.foregroundStyle(.secondary) } }
 }
-
 @available(iOS, introduced: 13.0, deprecated: 16.0)
 extension LabeledContent where Label == Text {
-    init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> Content) {
-        self.label = Text(titleKey)
-        self.content = content()
-    }
-    init<S: StringProtocol>(_ title: S, @ViewBuilder content: () -> Content) {
-        self.label = Text(title)
-        self.content = content()
-    }
+    init(_ k: LocalizedStringKey, @ViewBuilder content: () -> Content) { self.label = Text(k); self.content = content() }
+    init<S: StringProtocol>(_ t: S, @ViewBuilder content: () -> Content) { self.label = Text(t); self.content = content() }
 }
-
 @available(iOS, introduced: 13.0, deprecated: 16.0)
 extension LabeledContent where Label == Text, Content == Text {
-    init(_ titleKey: LocalizedStringKey, value: String) {
-        self.label = Text(titleKey)
-        self.content = Text(value)
-    }
-    init<S: StringProtocol>(_ title: S, value: String) {
-        self.label = Text(title)
-        self.content = Text(value)
-    }
+    init(_ k: LocalizedStringKey, value: String) { self.label = Text(k); self.content = Text(value) }
+    init<S: StringProtocol>(_ t: S, value: String) { self.label = Text(t); self.content = Text(value) }
 }
-
 @available(iOS, introduced: 13.0, deprecated: 16.0)
-extension View {
-    @ViewBuilder
-    func fontWeight(_ weight: Font.Weight?) -> some View {
-        if let weight {
+extension View { @ViewBuilder func fontWeight(_ w: Font.Weight?) -> some View { if let w { self.font(.body.weight(w)) } else { self } } }
+@available(iOS, introduced: 13.0, deprecated: 16.0)
+extension URL { static var documentsDirectory: URL { FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first! } }
+@available(iOS, introduced: 13.0, deprecated: 16.0)
+extension PickerStyle where Self == NavigationLinkPickerStyle { static var navigationLink: NavigationLinkPickerStyle { NavigationLinkPickerStyle() } }
+@available(iOS, introduced: 13.0, deprecated: 16.0)
+struct ShareLink<Label: View>: View {
+    let items: [Any]; let label: Label
+    init(item: URL, subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> Label) { self.items = [item]; self.label = label() }
+    init(items: [URL], subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> Label) { self.items = items; self.label = label() }
+    var body: some View { Button { let vc = UIActivityViewController(activityItems: items, applicationActivities: nil); UIApplication.shared.connectedScenes.compactMap { ($0 as? UIWindowScene)?.keyWindow?.rootViewController }.first?.present(vc, animated: true) } label: { label } }
+}

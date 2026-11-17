@@ -20,7 +20,7 @@ permissions:
 jobs:
   native:
     name: Native libraries (Wine, FEX, FFmpeg, GnuTLS)
-    runs-on: macos-26
+    runs-on: macos-15
     timeout-minutes: 350
     steps:
       - uses: actions/checkout@v4
@@ -78,7 +78,7 @@ jobs:
 
   dxmt:
     name: DXMT + LLVM for iOS
-    runs-on: macos-26
+    runs-on: macos-15
     timeout-minutes: 350
     steps:
       - uses: actions/checkout@v4
@@ -153,7 +153,7 @@ jobs:
 
   wine-i386:
     name: i386 Windows farm (WoW64)
-    runs-on: macos-26
+    runs-on: macos-15
     timeout-minutes: 300
     steps:
       - uses: actions/checkout@v4

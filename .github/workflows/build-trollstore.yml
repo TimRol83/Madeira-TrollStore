@@ -38,6 +38,114 @@ jobs:
             -DBUILD_FEX_LINUX_TESTS=OFF -DENABLE_FEX_ALLOCATOR=OFF -DENABLE_ASSERTIONS=OFF > fex-configure.log 2>&1 \
             || { tail -40 fex-configure.log; exit 0; }
           cmake --build FEX/build-ios --target IR_INC CONFIG_INC || true
+      - name: Patch iOS 15 compatibility
+        run: |
+          sed -i '' 's/Task\.sleep(for: \.seconds(\([^)]*\)))/Task.sleep(nanoseconds: UInt64((\1) * 1_000_000_000))/g' app/Madeira/Library.swift
+          cat << 'EOF' >> app/Madeira/SwiftSteam/SteamSignInView.swift
+
+          @available(iOS, introduced: 13.0, deprecated: 16.0)
+          struct AnyShape: Shape {
+              private let b: (CGRect) -> Path
+              init<S: Shape>(_ s: S) { b = { s.path(in: $0) } }
+              func path(in r: CGRect) -> Path { b(r) }
+          }
+
+          @available(iOS, introduced: 13.0, deprecated: 16.0)
+          struct NavigationStack<Content: View>: View {
+              let content: Content
+              init(@ViewBuilder content: () -> Content) { self.content = content() }
+              var body: some View { NavigationView { content }.navigationViewStyle(.stack) }
+          }
+
+          @available(iOS, introduced: 13.0, deprecated: 16.0)
+          struct LabeledContent<Label: View, Content: View>: View {
+              let label: Label; let content: Content
+              init(@ViewBuilder content: () -> Content, @ViewBuilder label: () -> Label) { self.content = content(); self.label = label() }
+              var body: some View { HStack { label; Spacer(); content.foregroundStyle(.secondary) } }
+          }
+
+          @available(iOS, introduced: 13.0, deprecated: 16.0)
+          extension LabeledContent where Label == Text {
+              init(_ k: LocalizedStringKey, @ViewBuilder content: () -> Content) { self.label = Text(k); self.content = content() }
+              init<S: StringProtocol>(_ t: S, @ViewBuilder content: () -> Content) { self.label = Text(t); self.content = content() }
+          }
+
+          @available(iOS, introduced: 13.0, deprecated: 16.0)
+          extension LabeledContent where Label == Text, Content == Text {
+              init(_ k: LocalizedStringKey, value: String) { self.label = Text(k); self.content = Text(value) }
+              init<S: StringProtocol>(_ t: S, value: String) { self.label = Text(t); self.content = Text(value) }
+          }
+
+          @available(iOS, introduced: 13.0, deprecated: 16.0)
+          extension Text {
+              func fontWeight(_ w: Font.Weight?) -> Text {
+                  if let w { return self.font(.body.weight(w)) }
+                  return self
+              }
+          }
+
+          @available(iOS, introduced: 13.0, deprecated: 16.0)
+          extension URL {
+              static var documentsDirectory: URL {
+                  FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+              }
+          }
+
+          @available(iOS, introduced: 13.0, deprecated: 16.0)
+          extension PickerStyle where Self == DefaultPickerStyle {
+              static var navigationLink: DefaultPickerStyle { DefaultPickerStyle() }
+          }
+
+          @available(iOS, introduced: 13.0, deprecated: 16.0)
+          struct ShareLink<Label: View>: View {
+              let items: [Any]; let label: Label
+              init(item: URL, subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> Label) { self.items = [item]; self.label = label() }
+              init(items: [URL], subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> Label) { self.items = items; self.label = label() }
+              var body: some View {
+                  Button {
+                      let vc = UIActivityViewController(activityItems: items, applicationActivities: nil)
+                      UIApplication.shared.connectedScenes
+                          .compactMap { ($0 as? UIWindowScene)?.keyWindow?.rootViewController }
+                          .first?.present(vc, animated: true)
+                  } label: { label }
+              }
+          }
+
+          @available(iOS, introduced: 13.0, deprecated: 16.0)
+          struct ViewThatFits<Content: View>: View {
+              let content: Content
+              init(in axes: Axis.Set = [.horizontal, .vertical], @ViewBuilder content: () -> Content) { self.content = content() }
+              var body: some View { content }
+          }
+
+          @available(iOS, introduced: 13.0, deprecated: 16.0)
+          enum SearchBarPlacement {
+              case automatic
+              case navigationBarDrawer(displayMode: SearchFieldPlacement.NavigationBarDrawerDisplayMode = .automatic)
+          }
+
+          @available(iOS, introduced: 13.0, deprecated: 16.0)
+          enum ToolbarPlacement { case navigationBar, bottomBar, tabBar, automatic }
+
+          @available(iOS, introduced: 13.0, deprecated: 16.0)
+          enum ScrollIndicatorVisibility { case automatic, visible, hidden, never }
+
+          @available(iOS, introduced: 13.0, deprecated: 16.0)
+          extension TextField where Label == Text {
+              init(_ titleKey: LocalizedStringKey, text: Binding<String>, axis: Axis) {
+                  self.init(titleKey, text: text)
+              }
+          }
+
+          @available(iOS, introduced: 13.0, deprecated: 16.0)
+          extension View {
+              func preferredSearchBarPlacement(_ placement: SearchBarPlacement) -> some View { self }
+              func lineLimit(_ limit: ClosedRange<Int>) -> some View { self.lineLimit(limit.upperBound) }
+              func toolbarBackground(_ visibility: Visibility, for bars: ToolbarPlacement...) -> some View { self }
+              func scrollContentBackground(_ visibility: Visibility) -> some View { self }
+              func scrollIndicators(_ visibility: ScrollIndicatorVisibility, axes: Axis.Set = [.vertical, .horizontal]) -> some View { self }
+          }
+          EOF
       - name: Compile
         run: |
           mkdir -p app/Madeira/x86_64-vcruntime

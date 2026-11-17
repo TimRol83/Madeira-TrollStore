@@ -17,7 +17,7 @@ permissions:
 jobs:
   compile-check:
     name: Compile check (iOS 15.0)
-    runs-on: macos-26
+    runs-on: macos-15
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
@@ -26,7 +26,7 @@ jobs:
           fetch-depth: 1
       - name: Select Xcode
         run: |
-          sudo xcode-select -s "$(ls -d /Applications/Xcode_26*.app | sort -V | tail -1)"
+          sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
           xcodebuild -version
           xcodebuild -downloadComponent MetalToolchain || true
       - name: FEX generated headers only
@@ -42,8 +42,8 @@ jobs:
         run: |
           sed -i '' 's/Task\.sleep(for: \.seconds(\([^)]*\)))/Task.sleep(nanoseconds: UInt64((\1) * 1_000_000_000))/g' app/Madeira/Library.swift
           sed -i '' 's/\.toolbarBackground([^)]*)//g' app/Madeira/Library.swift app/Madeira/ContentView.swift
-          sed -i '' 's/\.preferredSearchBarPlacement([^)]*)//g' app/Madeira/Library.swift app/Madeira/ContentView.swift
-          sed -i '' 's/ViewThatFits[^{]*{/Group {/g' app/Madeira/Library.swift
+          sed -i '' '/preferredSearchBarPlacement/d' app/Madeira/Library.swift app/Madeira/ContentView.swift
+          sed -i '' 's/ViewThatFits([^)]*)/Group/g; s/ViewThatFits {/Group {/g' app/Madeira/Library.swift
           cat << 'EOF' >> app/Madeira/SwiftSteam/SteamSignInView.swift
 
           @available(iOS, introduced: 13.0, deprecated: 16.0)

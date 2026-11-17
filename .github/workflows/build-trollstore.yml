@@ -41,6 +41,9 @@ jobs:
       - name: Patch iOS 15 compatibility
         run: |
           sed -i '' 's/Task\.sleep(for: \.seconds(\([^)]*\)))/Task.sleep(nanoseconds: UInt64((\1) * 1_000_000_000))/g' app/Madeira/Library.swift
+          sed -i '' 's/\.toolbarBackground([^)]*)//g' app/Madeira/Library.swift app/Madeira/ContentView.swift
+          sed -i '' 's/\.preferredSearchBarPlacement([^)]*)//g' app/Madeira/Library.swift app/Madeira/ContentView.swift
+          sed -i '' 's/ViewThatFits[^{]*{/Group {/g' app/Madeira/Library.swift
           cat << 'EOF' >> app/Madeira/SwiftSteam/SteamSignInView.swift
 
           @available(iOS, introduced: 13.0, deprecated: 16.0)
@@ -119,22 +122,6 @@ jobs:
           }
 
           @available(iOS, introduced: 13.0, deprecated: 16.0)
-          struct ViewThatFits<Content: View>: View {
-              let content: Content
-              init(in axes: Axis.Set = [.horizontal, .vertical], @ViewBuilder content: () -> Content) { self.content = content() }
-              var body: some View { content }
-          }
-
-          @available(iOS, introduced: 13.0, deprecated: 16.0)
-          enum SearchBarPlacement {
-              case automatic
-              case navigationBarDrawer(displayMode: SearchFieldPlacement.NavigationBarDrawerDisplayMode = .automatic)
-          }
-
-          @available(iOS, introduced: 13.0, deprecated: 16.0)
-          enum ToolbarPlacement { case navigationBar, bottomBar, tabBar, automatic }
-
-          @available(iOS, introduced: 13.0, deprecated: 16.0)
           enum ScrollIndicatorVisibility { case automatic, visible, hidden, never }
 
           @available(iOS, introduced: 13.0, deprecated: 16.0)
@@ -146,9 +133,7 @@ jobs:
 
           @available(iOS, introduced: 13.0, deprecated: 16.0)
           extension View {
-              func preferredSearchBarPlacement(_ placement: SearchBarPlacement) -> some View { self }
               func lineLimit(_ limit: ClosedRange<Int>) -> some View { self.lineLimit(limit.upperBound) }
-              func toolbarBackground(_ visibility: Visibility, for bars: ToolbarPlacement...) -> some View { self }
               func scrollContentBackground(_ visibility: Visibility) -> some View { self }
               func scrollIndicators(_ visibility: ScrollIndicatorVisibility, axes: Axis.Set = [.vertical, .horizontal]) -> some View { self }
           }

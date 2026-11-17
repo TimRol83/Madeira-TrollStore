@@ -163,3 +163,16 @@ struct SteamSignInView: View {
         }
     }
 }
+
+@available(iOS, introduced: 13.0, deprecated: 16.0)
+struct AnyShape: Shape {
+    private let builder: (CGRect) -> Path
+
+    init<S: Shape>(_ shape: S) {
+        builder = { rect in shape.path(in: rect) }
+    }
+
+    func path(in rect: CGRect) -> Path {
+        builder(rect)
+    }
+}

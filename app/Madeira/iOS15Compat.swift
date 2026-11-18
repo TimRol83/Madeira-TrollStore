@@ -74,7 +74,7 @@ extension View {
     @ViewBuilder func fontWeight(_ weight: Font.Weight?) -> some View {
         if #available(iOS 16.0, *) { self.fontWeight(weight) } else { self }
     }
-    -ViewBuilder func scrollContentBackground(_ visibility: Visibility) -> some View {
+    @ViewBuilder func scrollContentBackground(_ visibility: Visibility) -> some View {
         if #available(iOS 16.0, *) { self.scrollContentBackground(visibility) } else { self }
     }
     @ViewBuilder func scrollIndicators(_ visibility: ScrollIndicatorVisibilityCompat, axes: Axis.Set = [.vertical, .horizontal]) -> some View {

@@ -1483,7 +1483,6 @@ struct LibraryNavSearch: UIViewControllerRepresentable {
             if let owner, owner.navigationItem.searchController === coordinator?.controller { owner.navigationItem.searchController = nil }
         }
     }
-}
 
 struct SteamMatch: Decodable, Identifiable {
     let id: Int

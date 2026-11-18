@@ -253,7 +253,7 @@ jobs:
           sudo xcode-select -s "$(ls -d /Applications/Xcode_26*.app | sort -V | tail -1)"
           xcodebuild -version
 
-           - name: Patch iOS 15 compatibility
+      - name: Patch iOS 15 compatibility
         run: |
           find app -name "*.swift" -exec sed -i '' 's/Task\.sleep(for: \.seconds(\([^)]*\)))/Task.sleep(nanoseconds: UInt64(\1 * 1_000_000_000))/g' {} +
           find app -name "*.swift" -exec sed -i '' 's/URL\.documentsDirectory/FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!/g' {} +

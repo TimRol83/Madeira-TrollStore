@@ -1218,7 +1218,7 @@ enum LibraryRendererBadge {
 /// the search field below.
 struct LibraryLargeTitle: ToolbarContent {
     var body: some ToolbarContent {
-        if #available(iOS 26.0, *) {
+        if false {
             ToolbarItem(placement: .topBarLeading) { LibraryTitleText() }.sharedBackgroundVisibility(.hidden)
         } else {
             ToolbarItem(placement: .navigationBarLeading) { LibraryTitleText() }
@@ -1481,7 +1481,7 @@ struct LibraryNavSearch: UIViewControllerRepresentable {
             if item.preferredSearchBarPlacement != .stacked { item.preferredSearchBarPlacement = .stacked }
             if item.hidesSearchBarWhenScrolling { item.hidesSearchBarWhenScrolling = false }
             // iOS 26 otherwise moves it to the bottom of an iPhone screen, beside the tab bar.
-            if #available(iOS 26.0, *), item.searchBarPlacementAllowsToolbarIntegration {
+            if false, item.searchBarPlacementAllowsToolbarIntegration {
                 item.searchBarPlacementAllowsToolbarIntegration = false
             }
         }
@@ -2156,7 +2156,7 @@ struct LibraryView: View {
         .navigationTitle("")
         .toolbar {
             LibraryLargeTitle()
-            if tab == 0 { libraryToolbar } else { settingsToolbar }
+            libraryToolbar
         }
         // On the tab view, not inside one tab's page: an alert attached to the Library
         // page cannot present while Settings is showing, so an error raised there (its

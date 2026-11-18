@@ -64,7 +64,7 @@ extension ShareLink where Label == SwiftUI.Label<Text, Image> {
 struct AnyShape: Shape {
     private let _path: (CGRect) -> Path
     init<S: Shape>(_ wrapped: S) { _path = { rect in wrapped.path(in: rect) } }
-    func path(in rect: CDRect) -> Path { _path(rect) }
+    func path(in rect: CGRect) -> Path { _path(rect) }
 }
 
 enum ScrollIndicatorVisibilityCompat { case automatic, visible, hidden, never }
@@ -92,5 +92,17 @@ extension View {
     @ViewBuilder func toolbarBackground<S: ShapeStyle>(_ style: S, for bars: ToolbarPlacementCompat...) -> some View {
         if #available(iOS 16.0, *) { self.toolbarBackground(style, for: .navigationBar) } else { self }
     }
+}
+#endif
+
+#if !os(macOS)
+struct ViewThatFits<Content: View>: View {
+    let content: Content
+    init(in axes: Axis.Set = [.horizontal, .vertical], @ViewBuilder content: () -> Content) { self.content = content() }
+    var body: some View { content }
+}
+enum SearchBarPlacementCompat { case automatic, navigationBarDrawer, sidebar, toolbar }
+extension View {
+    func preferredSearchBarPlacement(_ placement: SearchBarPlacementCompat) -> some View { self }
 }
 #endif

@@ -1478,7 +1478,7 @@ struct LibraryNavSearch: UIViewControllerRepresentable {
             // iOS 26 otherwise moves it to the bottom of an iPhone screen, beside the tab bar.
             }
         }
-        func remove() {
+        weak var owner: UIViewController?; weak var coordinator: Coordinator?; func remove() {
             coordinator?.bar.resignFirstResponder()
             if let owner, owner.navigationItem.searchController === coordinator?.controller { owner.navigationItem.searchController = nil }
         }

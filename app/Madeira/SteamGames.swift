@@ -1192,7 +1192,7 @@ struct SteamEntrySection: View {
                     Picker("Program", selection: Binding(get: { entry.steamProgram ?? "" }, set: { pick($0) })) {
                         if entry.steamProgram == nil { Text("Choose…").tag("") }
                         ForEach(pickerPrograms, id: \.self) { Text($0).tag($0) }
-                    }.pickerStyle(.navigationLink)
+                    }.pickerStyle(.automatic)
                     if entry.steamProgramSource == "steam" {
                         if (entry.steamProgramArguments ?? "").isEmpty {
                             Text("From Steam's launch configuration for this game.").font(.caption).foregroundStyle(.secondary)

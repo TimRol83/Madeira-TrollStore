@@ -1218,11 +1218,7 @@ enum LibraryRendererBadge {
 /// the search field below.
 struct LibraryLargeTitle: ToolbarContent {
     var body: some ToolbarContent {
-        if false {
-            ToolbarItem(placement: .topBarLeading) { LibraryTitleText() }.sharedBackgroundVisibility(.hidden)
-        } else {
-            ToolbarItem(placement: .navigationBarLeading) { LibraryTitleText() }
-        }
+        ToolbarItem(placement: .navigationBarLeading) { LibraryTitleText() }
     }
 }
 
@@ -1478,11 +1474,8 @@ struct LibraryNavSearch: UIViewControllerRepresentable {
             owner = target
             let item = target.navigationItem
             if item.searchController !== c.controller { item.searchController = c.controller }
-            if item.preferredSearchBarPlacement != .stacked { item.preferredSearchBarPlacement = .stacked }
             if item.hidesSearchBarWhenScrolling { item.hidesSearchBarWhenScrolling = false }
             // iOS 26 otherwise moves it to the bottom of an iPhone screen, beside the tab bar.
-            if false, item.searchBarPlacementAllowsToolbarIntegration {
-                item.searchBarPlacementAllowsToolbarIntegration = false
             }
         }
         func remove() {
@@ -2689,8 +2682,8 @@ struct LibraryDetail: View {
                 // A Steam game starts with Steam's own launch option through Madeira Dock.
                 if entry.desktop != true && entry.steamAppID == nil {
                     Section {
-                        TextField("Launch arguments", text: $entry.arguments, axis: .vertical)
-                            .font(.body.monospaced()).lineLimit(1...4)
+                        TextField("Launch arguments", text: $entry.arguments)
+                            .font(.body.monospaced()).lineLimit(4)
                             .autocorrectionDisabled().textInputAutocapitalization(.never)
                         LaunchFlagChips(arguments: $entry.arguments)
                         // What the next start runs (ml1163: in the Wine desktop, a batch file or

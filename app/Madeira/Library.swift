@@ -1377,7 +1377,7 @@ struct LibraryNavSearch: UIViewControllerRepresentable {
         // controller on the way; put it back once that update has landed.
         DispatchQueue.main.async { host.apply() }
     }
-    static func dismantleUIViewController(_ host: Host, coordinator: Coordinator) { host.remove() }
+    static func dismantleUIViewController(_ host: Host, coordinator: Coordinator) { host.removeFromParent() }
 
     final class Coordinator: NSObject, UISearchResultsUpdating, UISearchBarDelegate, UIGestureRecognizerDelegate {
         var parent: LibraryNavSearch

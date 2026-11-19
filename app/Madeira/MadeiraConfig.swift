@@ -68,7 +68,7 @@ enum MadeiraConfig {
     /// build/madeira_cfg.h reads after madeira.cfg so a key there wins, and whose
     /// env.NAME lines WineProcessBridge.m exports after madeira.cfg's.
     static var gameURL: URL? {
-        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?
             .appendingPathComponent("madeira-game.cfg")
     }
 

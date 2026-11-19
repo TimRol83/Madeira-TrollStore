@@ -12,8 +12,8 @@ if [ ! -f "$B/CMakeCache.txt" ]; then
     cmake -S "$R/FEX" -B "$B" -G Ninja -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_TOOLCHAIN_FILE="$R/FEX/Data/CMake/toolchain_mingw.cmake" \
         -DMINGW_TRIPLE=aarch64-w64-mingw32 \
-        -DFEX_IOS_HOST_BUILD=ON -DCMAKE_C_FLAGS=-DFEX_IOS_HOST \
-        -DCMAKE_CXX_FLAGS=-DFEX_IOS_HOST -DCMAKE_ASM_FLAGS=-DFEX_IOS_HOST \
+        -DFEX_IOS_HOST_BUILD=ON -DCMAKE_C_FLAGS="-DFEX_IOS_HOST -march=armv8-a+crypto+fp+simd -mno-outline-atomics" \
+        -DCMAKE_CXX_FLAGS="-DFEX_IOS_HOST -march=armv8-a+crypto+fp+simd -mno-outline-atomics" -DCMAKE_ASM_FLAGS="-DFEX_IOS_HOST -march=armv8-a+crypto+fp+simd" \
         -DENABLE_LTO=OFF -DENABLE_ASSERTIONS=OFF -DENABLE_JEMALLOC_GLIBC_ALLOC=OFF \
         -DBUILD_TESTING=OFF -DBUILD_FEXCONFIG=OFF -DTUNE_ARCH=generic -DTUNE_CPU=none \
         -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \

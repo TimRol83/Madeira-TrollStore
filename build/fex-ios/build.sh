@@ -9,7 +9,7 @@ if [ ! -f "$B/CMakeCache.txt" ]; then
     cmake -S "$R/FEX" -B "$B" -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_SYSTEM_PROCESSOR=arm64 -DCMAKE_OSX_ARCHITECTURES=arm64 \
         -DCMAKE_OSX_SYSROOT=iphoneos -DCMAKE_OSX_DEPLOYMENT_TARGET=${MADEIRA_IOS_MIN:-16.0} -DCMAKE_BUILD_TYPE=Release \
         -DBUILD_TESTING=OFF -DBUILD_THUNKS=OFF -DBUILD_FEXCONFIG=OFF -DBUILD_FEX_LINUX_TESTS=OFF \
-        -DTUNE_CPU=none -DENABLE_FEX_ALLOCATOR=OFF -DENABLE_ASSERTIONS=OFF -DENABLE_CLANG_THUNKS=ON -DENABLE_CCACHE=ON
+        -DTUNE_CPU=none -DCMAKE_C_FLAGS="-march=armv8-a+crypto+fp+simd -mno-outline-atomics" -DCMAKE_CXX_FLAGS="-march=armv8-a+crypto+fp+simd -mno-outline-atomics" -DENABLE_FEX_ALLOCATOR=OFF -DENABLE_ASSERTIONS=OFF -DENABLE_CLANG_THUNKS=ON -DENABLE_CCACHE=ON
 fi
 cmake --build "$B" --target FEXCore FEXCore_Base JemallocLibs -j"$(sysctl -n hw.ncpu)" -- -k
 ls "$B/FEXCore/Source/"*.a

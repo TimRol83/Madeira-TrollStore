@@ -1404,7 +1404,19 @@ index cd70400..78e5bf8 100644
  static NTSTATUS
  _MTLDevice_newRenderPipelineState(void *obj) {
    struct unixcall_mtldevice_newrenderpso *params = obj;
-@@ -1653,6 +1771,8 @@ _MTLDevice_newRenderPipelineState(void *obj) {
+@@ -1644,3 +1762,11 @@ _MTLDevice_newRenderPipelineState(void *obj) {
+ static NTSTATUS
+ _MTLDevice_newRenderPipelineState(void *obj) {
+     struct unixcall_mtldevice_newrenderpso *params = obj;
++    MTLRenderPipelineDescriptor *a9_desc = (MTLRenderPipelineDescriptor *)params->descriptor;
++    if (a9_desc && [a9_desc.colorAttachments objectAtIndexedSubscript:0].pixelFormat == MTLPixelFormatInvalid &&
++        a9_desc.depthAttachmentPixelFormat == MTLPixelFormatInvalid &&
++        a9_desc.stencilAttachmentPixelFormat == MTLPixelFormatInvalid) {
++        params->ret_pso = 0;
++        params->ret_error = 0;
++        return STATUS_SUCCESS;
++    }
+@@ -1653,6 +1780,8 @@ _MTLDevice_newRenderPipelineState(void *obj) {
                                                                                             reflection:nil
                                                                                                  error:&err];
    params->ret_error = (obj_handle_t)err;

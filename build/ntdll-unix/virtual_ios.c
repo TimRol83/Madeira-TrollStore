@@ -8711,6 +8711,7 @@ NTSTATUS ios_wow_window_reserve(void)
         return STATUS_NO_MEMORY;
     }
     ios_wow_band( &floor, &ceil );
+    if (ios_wow_small_va_slots > 0 && ios_wow_small_va_slots < 4) ios_wow_small_va_slots = 4;
     if (ios_wow_small_va_slots && held >= ios_wow_small_va_slots)
     {
         pthread_mutex_unlock( &ios_wow_mutex );

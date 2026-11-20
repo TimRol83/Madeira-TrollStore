@@ -287,7 +287,35 @@ stage_dxmt() {
     # iOS 16 loads Metal 3.0 libraries at most (see ci/patches/dxmt).
     export DXMT_METAL_STD="${DXMT_METAL_STD:-ios-metal2.4}" DXMT_METAL_SDK=iphoneos \
            DXMT_METAL_TARGET="air64-apple-ios$MADEIRA_IOS_MIN"
-    bash "$R/build/dxmt-ios/build.sh" || { dump_errs "$R/build/dxmt-ios/obj"; exit 1; }
+    python3 - "$R" << 'PY'
+import sys, os, glob, re
+root = sys.argv.pop()
+hits = []
+for fn in glob.glob(os.path.join(root, "**", "*.m"), recursive=True):
+    txt = open(fn, errors="ignore").read()
+    if "wmt_pso_probe" in txt:
+        hits.append((fn, txt))
+assert len(hits) == 1, f"expected 1 wmt_pso_probe file, got {len(hits)}"
+fn, txt = hits.pop()
+lb, rb, nl = chr(91), chr(93), chr(10)
+guard = nl.join([
+    "    if (descriptor &&",
+    f"        {lb}descriptor.colorAttachments objectAtIndexedSubscript:0{rb}.pixelFormat == MTLPixelFormatInvalid &&",
+    "        descriptor.depthAttachmentPixelFormat == MTLPixelFormatInvalid &&",
+    "        descriptor.stencilAttachmentPixelFormat == MTLPixelFormatInvalid) {",
+    "        params->ret_pso = 0;",
+    "        params->ret_error = 0;",
+    "        return STATUS_SUCCESS;",
+    "    }",
+    ""
+])
+pat = rf"([ \t]*params->ret_pso\s*=\s*\(obj_handle_t\)\s*{lb}\s*\(id<MTLDevice>\)\s*params->device\s+newRenderPipelineStateWithDescriptor:descriptor)"
+txt, n = re.subn(pat, lambda m: guard + m.group(1), txt, count=1)
+assert n == 1, "newRenderPipelineStateWithDescriptor call not matched"
+open(fn, "w").write(txt)
+print("Injected A9 empty-pixelFormat guard into", fn)
+PY
+  bash "$R/build/dxmt-ios/build.sh" || { dump_errs "$R/build/dxmt-ios/obj"; exit 1; }
     # The combined archive: DXMT's objects plus the LLVM libraries airconv uses.
     # Not scripted upstream ("build it before deploying"); libtool -static
     # merges them, and the app link pulls only what it references.

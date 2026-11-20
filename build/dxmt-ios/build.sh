@@ -188,8 +188,8 @@ mkdir -p "$BUILD_DIR/shader-headers"
 for sh in air_msad air_samplepos air_tessellation; do
     printf "  %-40s " "$sh.h"
     if (cd "$BUILD_DIR/shader-headers" \
-        && xcrun -sdk "${DXMT_METAL_SDK:-macosx}" metal -std="${DXMT_METAL_STD:-metal3.1}" \
-             --target="${DXMT_METAL_TARGET:-air64-apple-macos14.0}" -o "$sh.air" -c "$DXMT_SRC/airconv/shaders/$sh.metal" \
+        && xcrun -sdk "${DXMT_METAL_SDK:-macosx}" metal -std="${DXMT_METAL_STD:-ios-metal2.4}" \
+             --target="${DXMT_METAL_TARGET:-air64-apple-ios15.0}" -o "$sh.air" -c "$DXMT_SRC/airconv/shaders/$sh.metal" \
         && xxd -n "$sh" -i "$sh.air" "$sh.h") 2>"$OBJ_DIR/$sh.err"; then
         echo "OK"
     else
@@ -252,13 +252,13 @@ echo "=== MADEIRA: dxmt_madeira_native -- internal command library ==="
 # DXMT's meson build (the container format must also be one the OS reads). The
 # script's own timestamp is part of
 # the cache check so that a flag change here regenerates the header.
-DXMT_METAL_STD="${DXMT_METAL_STD:-metal3.1}"
+DXMT_METAL_STD="${DXMT_METAL_STD:-ios-metal2.4}"
 if [ ! -f "$BUILD_DIR/shader-headers/dxmt_command.h" ] \
    || [ "$DXMT_SRC/dxmt/dxmt_command.metal" -nt "$BUILD_DIR/shader-headers/dxmt_command.h" ] \
    || [ "$0" -nt "$BUILD_DIR/shader-headers/dxmt_command.h" ]; then
     mkdir -p "$BUILD_DIR/shader-headers"
     (cd "$BUILD_DIR/shader-headers" \
-     && xcrun -sdk "${DXMT_METAL_SDK:-macosx}" metal -std="$DXMT_METAL_STD" --target="${DXMT_METAL_TARGET:-air64-apple-macos14.0}" \
+     && xcrun -sdk "${DXMT_METAL_SDK:-macosx}" metal -std="$DXMT_METAL_STD" --target="${DXMT_METAL_TARGET:-air64-apple-ios15.0}" \
           -o dxmt_command.air -c "$DXMT_SRC/dxmt/dxmt_command.metal" \
      && xcrun -sdk "${DXMT_METAL_SDK:-macosx}" metallib -o dxmt_command.metallib dxmt_command.air \
      && xxd -n dxmt_command -i dxmt_command.metallib dxmt_command.h)

@@ -85,5 +85,5 @@ index 0526d6e..149f4df 100644
    auto &context = module.getContext();
 +  normalise_legacy(module);
    auto u32_md = [&](uint32_t v) { return ConstantAsMetadata::get(ConstantInt::get(context, APInt{32, v})); };
-   module.setTargetTriple("air64-apple-ios16.0.0");
+   module.setTargetTriple("air64-apple-ios15.0.0");
    if (auto *md = module.getNamedMetadata("air.version"))

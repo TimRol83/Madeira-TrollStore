@@ -214,7 +214,7 @@ guard = nl.join([
     "    }",
     ""
 ])
-probe_idx = txt.index("wmt_pso_probe(")
+probe_idx = txt.rindex("wmt_pso_probe(")
 pos = txt.rfind("params->ret_pso", 0, probe_idx)
 assert pos != -1, "params->ret_pso not found above wmt_pso_probe"
 line_start = txt.rfind("\n", 0, pos) + 1

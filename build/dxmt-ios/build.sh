@@ -214,9 +214,11 @@ guard = nl.join([
     "    }",
     ""
 ])
-target = "    params->ret_pso = (obj_handle_t)[(id<MTLDevice>)params->device newRenderPipelineStateWithDescriptor:descriptor"
-assert target in txt, "newRenderPipelineStateWithDescriptor line not found in winemetal_unix.c"
-open(fn, "w").write(txt.replace(target, guard + target, 1))
+probe_idx = txt.index("wmt_pso_probe(")
+pos = txt.rfind("params->ret_pso", 0, probe_idx)
+assert pos != -1, "params->ret_pso not found above wmt_pso_probe"
+line_start = txt.rfind("\n", 0, pos) + 1
+open(fn, "w").write(txt[:line_start] + guard + txt[line_start:])
 print("Injected A9 empty-pixelFormat guard cleanly into", fn)
 PY
 

@@ -304,6 +304,32 @@ for cpp in dxmt_format.cpp dxmt_names.cpp dxmt_command_queue.cpp dxmt_command.cp
     compile_madeira_cxx "$DXMT_SRC/dxmt/$cpp" "$name"
 done
 
+python3 - "$DXMT_SRC" << 'PY'
+import sys, os, glob, re
+root = sys.argv.pop()
+hits = [f for f in glob.glob(os.path.join(root, "**", "*.m"), recursive=True) if "wmt_pso_probe" in open(f, errors="ignore").read()]
+assert len(hits) == 1, f"expected 1 wmt_pso_probe file, got {len(hits)}"
+fn = hits.pop()
+txt = open(fn).read()
+lb, rb, nl = chr(91), chr(93), chr(10)
+guard = nl.join([
+    "    if (descriptor &&",
+    f"        {lb}descriptor.colorAttachments objectAtIndexedSubscript:0{rb}.pixelFormat == MTLPixelFormatInvalid &&",
+    "        descriptor.depthAttachmentPixelFormat == MTLPixelFormatInvalid &&",
+    "        descriptor.stencilAttachmentPixelFormat == MTLPixelFormatInvalid) {",
+    "        params->ret_pso = 0;",
+    "        params->ret_error = 0;",
+    "        return STATUS_SUCCESS;",
+    "    }",
+    ""
+])
+pat = rf"([ \t]*params->ret_pso\s*=\s*\(obj_handle_t\)\s*{lb}\s*\(id<MTLDevice>\)\s*params->device\s+newRenderPipelineStateWithDescriptor:descriptor)"
+txt, n = re.subn(pat, lambda m: guard + m.group(1), txt, count=1)
+assert n == 1, "newRenderPipelineStateWithDescriptor call not matched"
+open(fn, "w").write(txt)
+print("Injected A9 empty-pixelFormat guard cleanly into", fn)
+PY
+
 echo "=== MADEIRA: dxmt_madeira_native -- d3d9 frontend ==="
 for cpp in d3d9.cpp d3d9_buffer.cpp d3d9_census.cpp d3d9_clear_quad.cpp \
            d3d9_cube_texture.cpp d3d9_device.cpp d3d9_format.cpp d3d9_fvf.cpp \

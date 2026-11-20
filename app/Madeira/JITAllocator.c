@@ -398,7 +398,7 @@ void jit_install_trap_handler(void) {
     // Only install if no debugger is attached.
     // When StikDebug is attached, it handles BRK/SIGTRAP directly.
     // Our handler would steal signals from the debugger and break the protocol.
-    if (jit_check_debugged()) {
+    int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid()}; struct kinfo_proc kp = {0}; size_t kpsz = sizeof(kp); bool traced = (sysctl(mib, 4, &kp, &kpsz, NULL, 0) == 0) && ((kp.kp_proc.p_flag & P_TRACED) != 0); if (traced) {
         jit_log("Debugger attached — skipping SIGTRAP handler (debugger handles BRK)");
         return;
     }

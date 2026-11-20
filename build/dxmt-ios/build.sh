@@ -188,7 +188,7 @@ mkdir -p "$BUILD_DIR/shader-headers"
 for sh in air_msad air_samplepos air_tessellation; do
     printf "  %-40s " "$sh.h"
     if (cd "$BUILD_DIR/shader-headers" \
-        && xcrun -sdk "${DXMT_METAL_SDK:-macosx}" metal -std="${DXMT_METAL_STD:-ios-metal2.4}" \
+        && xcrun -sdk "${DXMT_METAL_SDK:-macosx}" metal -std="${DXMT_METAL_STD:-ios-metal2.4}" -Dobject_data=device \
              --target="${DXMT_METAL_TARGET:-air64-apple-ios15.0}" -o "$sh.air" -c "$DXMT_SRC/airconv/shaders/$sh.metal" \
         && xxd -n "$sh" -i "$sh.air" "$sh.h") 2>"$OBJ_DIR/$sh.err"; then
         echo "OK"

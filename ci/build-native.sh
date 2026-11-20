@@ -307,6 +307,7 @@ stage_rppairing() {
 # to them are patches applied here.
 for d in "$R"/ci/patches/*/; do
     sub=$(basename "$d")
+  git -C "$R/$sub" checkout -- . 2>/dev/null || true
     for p in "$d"*.patch; do
     if git -C "$R/$sub" apply -C1 --check "$p" 2>/dev/null; then
         git -C "$R/$sub" apply -C1 "$p" && echo "applied $sub/$(basename "$p")"

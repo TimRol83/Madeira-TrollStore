@@ -37,14 +37,14 @@ index ec97552..0526d6e 100644
 +static void restamp_legacy(Module &module) {
 +  auto &context = module.getContext();
 +  auto u32_md = [&](uint32_t v) { return ConstantAsMetadata::get(ConstantInt::get(context, APInt{32, v})); };
-+  module.setTargetTriple("air64-apple-ios16.0.0");
++  module.setTargetTriple("air64-apple-ios15.0.0");
 +  if (auto *md = module.getNamedMetadata("air.version"))
 +    module.eraseNamedMetadata(md);
 +  if (auto *md = module.getNamedMetadata("air.language_version"))
 +    module.eraseNamedMetadata(md);
-+  module.getOrInsertNamedMetadata("air.version")->addOperand(MDTuple::get(context, {u32_md(2), u32_md(5), u32_md(0)}));
++  module.getOrInsertNamedMetadata("air.version")->addOperand(MDTuple::get(context, {u32_md(2), u32_md(4), u32_md(0)}));
 +  module.getOrInsertNamedMetadata("air.language_version")
-+      ->addOperand(MDTuple::get(context, {MDString::get(context, "Metal"), u32_md(3), u32_md(0), u32_md(0)}));
++      ->addOperand(MDTuple::get(context, {MDString::get(context, "Metal"), u32_md(2), u32_md(4), u32_md(0)}));
 +}
 +
  template <typename T> std::string_view value(const T &value) {
@@ -57,7 +57,7 @@ index ec97552..0526d6e 100644
 +  const bool legacy = legacy_air();
 +  if (legacy)
 +    restamp_legacy(const_cast<llvm::Module &>(module));
-+  const uint16_t air_minor = legacy ? 5 : 6, lang_minor = legacy ? 0 : 1;
++  const uint16_t air_minor = legacy ? 4 : 6, lang_minor = legacy ? 4 : 1; const uint16_t lang_major = legacy ? 2 : 3;
 +
    raw_svector_ostream bitcode_stream(bitcode);
    WriteBitcodeToFile(module, bitcode_stream, false, nullptr, true);

@@ -287,7 +287,7 @@ stage_dxmt() {
     # iOS 16 loads Metal 3.0 libraries at most (see ci/patches/dxmt).
     export DXMT_METAL_STD="${DXMT_METAL_STD:-ios-metal2.4}" DXMT_METAL_SDK=iphoneos \
            DXMT_METAL_TARGET="air64-apple-ios$MADEIRA_IOS_MIN"
-    python3 - "$R" << 'PY'
+    python3 - "$S" << 'PY'
 import sys, os, glob, re
 root = sys.argv.pop()
 hits = []

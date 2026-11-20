@@ -308,7 +308,7 @@ python3 - "$DXMT_SRC" << 'PY'
 import sys, os, glob, re
 root = sys.argv.pop()
 hits = [f for f in glob.glob(os.path.join(root, "**", "*.m"), recursive=True) if "wmt_pso_probe" in open(f, errors="ignore").read()]
-assert len(hits) == 1, f"expected 1 wmt_pso_probe file, got {len(hits)}"
+assert len(hits) == 1, f"expected 1 wmt_pso_probe file in {root}, got {hits}"
 fn = hits.pop()
 txt = open(fn).read()
 lb, rb, nl = chr(91), chr(93), chr(10)

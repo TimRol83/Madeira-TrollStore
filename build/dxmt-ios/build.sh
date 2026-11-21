@@ -204,15 +204,26 @@ fn = sys.argv.pop()
 txt = open(fn).read()
 lb, rb, nl = chr(91), chr(93), chr(10)
 guard = nl.join([
-    "    if (descriptor &&",
-    f"        {lb}descriptor.colorAttachments objectAtIndexedSubscript:0{rb}.pixelFormat == MTLPixelFormatInvalid &&",
-    "        descriptor.depthAttachmentPixelFormat == MTLPixelFormatInvalid &&",
-    "        descriptor.stencilAttachmentPixelFormat == MTLPixelFormatInvalid) {",
-    "        params->ret_pso = 0;",
-    "        params->ret_error = 0;",
-    "        return STATUS_SUCCESS;",
+    "    if (descriptor) {",
+    "        NSUInteger d_fmt = (NSUInteger)descriptor.depthAttachmentPixelFormat;",
+    "        NSUInteger s_fmt = (NSUInteger)descriptor.stencilAttachmentPixelFormat;",
+    "        if (d_fmt == 255 || d_fmt == 250) descriptor.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float_Stencil8;",
+    "        if (s_fmt == 255 || s_fmt == 250) descriptor.stencilAttachmentPixelFormat = MTLPixelFormatDepth32Float_Stencil8;",
+    "        for (NSUInteger ci = 0; ci < 8; ++ci) {",
+    f"            MTLRenderPipelineColorAttachmentDescriptor *ca = [descriptor.colorAttachments objectAtIndexedSubscript:ci];",
+    "            NSUInteger c_fmt = (NSUInteger)ca.pixelFormat;",
+    "            if (c_fmt >= 130 && c_fmt <= 135) ca.pixelFormat = MTLPixelFormatBGRA8Unorm;",
+    "        }",
+    f"        NSUInteger rt0_fmt = (NSUInteger)[descriptor.colorAttachments objectAtIndexedSubscript:0].pixelFormat;",
+    "        fprintf(stderr, \"[a9-pso-check] rt0=%lu depth=%lu stencil=%lu\\n\", (unsigned long)rt0_fmt, (unsigned long)descriptor.depthAttachmentPixelFormat, (unsigned long)descriptor.stencilAttachmentPixelFormat);",
+    "        if (rt0_fmt == MTLPixelFormatInvalid &&",
+    "            descriptor.depthAttachmentPixelFormat == MTLPixelFormatInvalid &&",
+    "            descriptor.stencilAttachmentPixelFormat == MTLPixelFormatInvalid) {",
+    "            params->ret_pso = 0;",
+    "            params->ret_error = 0;",
+    "            return STATUS_SUCCESS;",
+    "        }",
     "    }",
-    ""
 ])
 probe_idx = txt.rindex("wmt_pso_probe(")
 pos = txt.rfind("params->ret_pso", 0, probe_idx)

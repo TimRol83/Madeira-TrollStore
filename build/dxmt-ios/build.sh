@@ -220,7 +220,6 @@ guard = nl.join([
         "        if (rt0_fmt == MTLPixelFormatInvalid) {",
         "            if (descriptor.depthAttachmentPixelFormat == MTLPixelFormatInvalid && descriptor.stencilAttachmentPixelFormat == MTLPixelFormatInvalid) {",
         "                params->ret_pso = 0;",
-        "                params->err = 0;",
         "                return STATUS_SUCCESS;",
         "            }",
         "            [descriptor.colorAttachments objectAtIndexedSubscript:0].pixelFormat = MTLPixelFormatBGRA8Unorm;",

@@ -192,7 +192,7 @@ jobs:
       - name: Pack
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          tar -cf - app/Madeira/i386-windows | zstd -T0 -19 -o i386-windows.tar.zst
+          tar -cf - app/Madeira/i386-windows app/Madeira/arm64ec-windows | zstd -T0 -19 -o i386-windows.tar.zst
           ls -lh i386-windows.tar.zst
 
       - name: Save i386 farm

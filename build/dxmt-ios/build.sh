@@ -335,13 +335,13 @@ d3d9_dir = sys.argv.pop()
 iface_fn = os.path.join(d3d9_dir, "d3d9_interface.cpp")
 dev_fn = os.path.join(d3d9_dir, "d3d9_device.cpp")
 
-def inject_guard(fn, func_name, arg_count):
+def inject_guard(fn, func_name, arg_count, param_idx):
     txt = open(fn).read()
     m = re.search(func_name + r"\s*\(([^)]*)\)\s*\{", txt)
     assert m, func_name + " not found in " + fn
     args = m.group(1).split(",")
     assert len(args) == arg_count, "unexpected arg count for " + func_name + ": " + str(len(args))
-    param = re.findall(r"[A-Za-z_]\w*", args[-1])[-1]
+    param = re.findall(r"[A-Za-z_]\w*", args[param_idx])[-1]
     guard = (
         "\n    const uint32_t a9_fmt = static_cast<uint32_t>(" + param + ");\n"
         "    if (a9_fmt == 0x31545844u || a9_fmt == 0x32545844u ||\n"
@@ -353,8 +353,8 @@ def inject_guard(fn, func_name, arg_count):
     open(fn, "w").write(txt[:m.end()] + guard + txt[m.end():])
     print("Injected A9 DXT1-DXT5 guard into", fn, func_name, "param:", param)
 
-inject_guard(iface_fn, "CheckDeviceFormat", 6)
-inject_guard(dev_fn, "CreateTexture", 8)
+inject_guard(iface_fn, "CheckDeviceFormat", 6, 5)
+inject_guard(dev_fn, "CreateTexture", 8, 4)
 PY
 
 echo "=== MADEIRA: dxmt_madeira_native -- d3d9 frontend ==="

@@ -142,7 +142,36 @@ cpu = 'i686'
 endian = 'little'
 EOF
     cd "$D"
-    if [ ! -f build-pe-i386/build.ninja ]; then
+    python3 - "$D/src/d3d9" << 'PY'
+import sys, os, re
+
+d3d9_dir = sys.argv.pop()
+iface_fn = os.path.join(d3d9_dir, "d3d9_interface.cpp")
+dev_fn = os.path.join(d3d9_dir, "d3d9_device.cpp")
+
+def inject_guard(fn, func_name, arg_count):
+    txt = open(fn).read()
+    m = re.search(func_name + r"\s*\(([^)]*)\)\s*\{", txt)
+    assert m, func_name + " not found in " + fn
+    args = m.group(1).split(",")
+    assert len(args) == arg_count, "unexpected arg count for " + func_name + ": " + str(len(args))
+    param = re.findall(r"[A-Za-z_]\w*", args[-1])[-1]
+    guard = (
+        "\n    const uint32_t a9_fmt = static_cast<uint32_t>(" + param + ");\n"
+        "    if (a9_fmt == 0x31545844u || a9_fmt == 0x32545844u ||\n"
+        "        a9_fmt == 0x33545844u || a9_fmt == 0x34545844u ||\n"
+        "        a9_fmt == 0x35545844u) {\n"
+        "        return D3DERR_NOTAVAILABLE;\n"
+        "    }\n"
+    )
+    open(fn, "w").write(txt[:m.end()] + guard + txt[m.end():])
+    print("Injected A9 DXT1-DXT5 guard into", fn, func_name, "param:", param)
+
+inject_guard(iface_fn, "CheckDeviceFormat", 6)
+inject_guard(dev_fn, "CreateTexture", 8)
+PY
+rm -rf "$D/build-pe-i386"
+if [ ! -f build-pe-i386/build.ninja ]; then
         SDKROOT="$(xcrun --sdk macosx --show-sdk-path)" \
         meson setup --cross-file "$X" --native-file build-osx.txt --buildtype release \
             -Dwine_build_path="$B" -Dwine_builtin_dll=true ${DXMT_MESON_EXTRA:-} build-pe-i386

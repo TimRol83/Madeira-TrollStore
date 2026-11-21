@@ -328,6 +328,27 @@ for cpp in dxmt_format.cpp dxmt_names.cpp dxmt_command_queue.cpp dxmt_command.cp
     compile_madeira_cxx "$DXMT_SRC/dxmt/$cpp" "$name"
 done
 
+python3 - "$DXMT_SRC/d3d9/d3d9_interface.cpp" << 'PY'
+import sys, re
+fn = sys.argv.pop()
+txt = open(fn).read()
+m = re.search(r"CheckDeviceFormat\s*\(([^)]*)\)\s*\{", txt)
+assert m, "CheckDeviceFormat definition not found"
+args = m.group(1).split(",")
+assert len(args) == 6, f"unexpected arg count: {len(args)}"
+param = re.findall(r"[A-Za-z_]\w*", args[-1])[-1]
+guard = (
+    f"\n    const uint32_t a9_fmt = static_cast<uint32_t>({param});\n"
+    "    if (a9_fmt == 0x31545844u || a9_fmt == 0x32545844u ||\n"
+    "        a9_fmt == 0x33545844u || a9_fmt == 0x34545844u ||\n"
+    "        a9_fmt == 0x35545844u) {\n"
+    "        return D3DERR_NOTAVAILABLE;\n"
+    "    }\n"
+)
+open(fn, "w").write(txt[:m.end()] + guard + txt[m.end():])
+print("Injected A9 DXT1-DXT5 D3DERR_NOTAVAILABLE guard into", fn, "param:", param)
+PY
+
 echo "=== MADEIRA: dxmt_madeira_native -- d3d9 frontend ==="
 for cpp in d3d9.cpp d3d9_buffer.cpp d3d9_census.cpp d3d9_clear_quad.cpp \
            d3d9_cube_texture.cpp d3d9_device.cpp d3d9_format.cpp d3d9_fvf.cpp \
